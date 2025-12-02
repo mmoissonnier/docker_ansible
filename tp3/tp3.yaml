@@ -1,0 +1,26 @@
+---
+- name: Installer Apache2 et MySQL, puis personnaliser la page si Apache est présent
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Installer Apache2 et MySQL
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop:
+        - apache2
+        - mysql-server
+      when: inventory_hostname in ["ServeurAnsible", "Hote2g"]
+
+    - name: Installer git, nginx, cosway
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop:
+        - git
+        - nginx
+        - cosway
+      when: inventory_hostname == "HotelLight"

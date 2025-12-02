@@ -1,0 +1,30 @@
+---
+- name: Installer Apache2 et MySQL, puis personnaliser la page si Apache est présent
+  hosts: all
+
+  tasks:
+  - name: Installer Apache2 et MySQL
+    apt:
+      name: "{{ item }}"
+      state: present
+      update_cache: yes
+    loop:
+      - apache2
+      - mysql-server
+
+  - name: Vérifier si Apache2 est installé
+    package_facts:
+      manager: apt
+
+  - name: Modifier la page index.html si Apache2 est installé
+    copy:
+      dest: /var/www/html/index.html
+      content: "Bonjour depuis Ansible"
+    when: "'apache2' in ansible_facts.packages"
+
+  - name: Démarrer et activer Apache2 si installé
+    service:
+      name: apache2
+      state: started
+      enabled: yes
+    when: "'apache2' in ansible_facts.packages"
