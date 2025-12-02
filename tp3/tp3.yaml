@@ -1,26 +1,55 @@
 ---
 - name: Installer Apache2 et MySQL, puis personnaliser la page si Apache est présent
   hosts: all
-  become: yes
+  become: true
+  become_user: root
 
   tasks:
     - name: Installer Apache2 et MySQL
       apt:
-        name: "{{ item }}"
-        state: present
-        update_cache: yes
-      loop:
-        - apache2
+        name: 
         - mysql-server
-      when: inventory_hostname in ["ServeurAnsible", "Hote2g"]
+        - apache2
+        state: present
+        update_cache: true
+      when: inventory_hostname == "ServeurAnsible" or inventory_hostname == "Hote2g"
 
     - name: Installer git, nginx, cosway
       apt:
         name: "{{ item }}"
         state: present
-        update_cache: yes
+        update_cache: true
       loop:
         - git
         - nginx
         - cosway
       when: inventory_hostname == "HotelLight"
+      
+    - name: Install ufw on ubuntu
+      ansible.builtin.apt:
+        name: ufw
+        state: present
+      when: ansible_distribution == "Ubuntu"
+
+    - name: Gather the rpm package facts
+      ansible.builtin.package_facts:
+        manager: auto
+
+    - name: Copy index.html if apache2 or nginx is installed
+      ansible.builtin.template:
+        src: template/index.j2
+        dest: /var/www/html/index.html
+        mode: '0644'
+      when: "'apache2' in ansible_facts.packages or 'nginx' in ansible_facts.packages"
+ 
+    - name: Start apache2
+      ansible.builtin.service:
+        name: apache2
+        state: started
+      when: "'apache2' in ansible_facts.packages"
+
+    - name: Start nginx
+      ansible.builtin.service:
+        name: nginx
+        state: started
+      when: "'nginx' in ansible_facts.packages"
