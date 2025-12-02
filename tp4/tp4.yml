@@ -1,5 +1,9 @@
 ---
 - name: Installer docker depuis un rôle
   hosts: all
+
+  vars_files: 
+    - /root/docker_ansible/tp4/vars_docker.yml
+
   roles:
     - geerlingguy.docker
