@@ -1,0 +1,30 @@
+---
+- name: Déployer docker compose et le fichier index.html sur un hote distant.
+  hosts: all
+  vars_files:
+    - vars/vars_docker.yml
+    - vaults/secrets.yml
+
+  tasks:
+    - name: Create a directory if it does not exist
+      ansible.builtin.file:
+        path: "/home/{{ run_user }}/tp6/"
+        state: directory
+        mode: '0755'
+
+    - name: Create a directory if it does not exist
+      ansible.builtin.template:
+        src: templates/docker-compose.j2
+        dest: /home/{{ run_user }}/tp6/
+        mode: '0755'
+
+    - name: Copy file with owner and permissions
+      ansible.builtin.copy:
+        src: files/Dockerfile
+        dest: /home/{{ run_user }}/tp6/
+        mode: '0644'
+
+    - name: Create and start services
+      community.docker.docker_compose_v2:
+        project_src: /home/{{ run_user }}/tp6/
+        state: present
